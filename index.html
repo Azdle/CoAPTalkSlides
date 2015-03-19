@@ -21,12 +21,43 @@
 
 		<!-- Local Style Overrides -->
 		<style type="text/css">
+
 			.reveal pre{
 				width:105%;
+			}
+			.reveal pre.left-half,.reveal textarea.left-half{
+				width:47.5%;
+				height: 100%;
+				float: left;
+			}
+			.reveal pre.right-half,.reveal textarea.right-half{
+				width:47.5%;
+				height: 100%;
+				float: right;
+			}
+			.reveal pre.left-half code,.reveal textarea.left-half code{
+				height: 30em;
+			}
+			.reveal pre.right-half code,.reveal textarea.right-half code{
+				height: 30em;
 			}
 
 			.reveal pre code{
 				padding: 1em;
+			}
+			.reveal textarea.left-half,.reveal textarea.right-half{
+				height: 20em;
+				width: 46%;
+			}
+			.reveal textarea{
+				border-style: none;
+				display: block;
+				font: 20px monospace;
+				margin-top: 20px;
+				margin-bottom: 20px;
+				padding-top: 1em;
+				padding-bottom: 1em;
+				white-space: pre;
 			}
 		</style>
 
@@ -45,9 +76,11 @@
 		<!-- my local scripts -->
 		<script type="text/javascript" src="js/dump.js"></script>
 		<script type="text/javascript" src="js/webdatagram.js"></script>
+		<script type="text/javascript" src="js/coap.js"></script>
 		<script>
 			var PING = new Uint8Array([64,0,0,0]);
 			var WRITE = new Uint8Array([0x40, 0x01, 0x00, 0x37, 0xB2, 0x31, 0x61, 0x04, 0x74, 0x65, 0x6D, 0x70, 0x4D, 0x07, 0xA3, 0x2C, 0x85, 0xBA, 0x9D, 0xDA, 0x45, 0x82, 0x3B, 0xE4, 0x16, 0x24, 0x6C, 0xF8, 0xB4, 0x33, 0xBA, 0xA0, 0x68, 0xD7]);
+			var SETUP_WRITE = {"type":"NON","code":"POST","opts":{"UriPath":["1a","msg"],"UriQuery":["f6b2d8b26aa4a42f54eca858d509663e02a7b909"]},"payload":"No way! It worked!"}
 
 			<!--// Global Objects -->
 			var dumper = new Dump({
@@ -55,7 +88,83 @@
 				asciiPreview: true,
 			});
 
-			var wd = new WebDatagramSocket("coap.exosite.com", 5683);
+			//var wd = new WebDatagramSocket("coap.exosite.com", 5683);
+			var wd = new WebDatagramSocket("coap.exosite.com", 5683, "ws://localhost:5000");
+
+			var c = new Coap();
+
+			// hackity hack hack
+			wd.ws.onopen = function() {wd.send(c.dump(SETUP_WRITE)); };
+
+			// Interactive Elements Setup and Handlers
+			function setupIOPair(subSel, reqHandler, resHandler) {
+				var reqText = document.getElementById(subSel + "-request");
+				var resText = document.getElementById(subSel + "-response");
+				var subButn = document.getElementById(subSel + "-sub");
+				var clrButn = document.getElementById(subSel + "-clr");
+
+				function callbackTransform(text) {
+					resHandler(text, resText);
+				}
+
+				clrButn.onclick	= function(e) { resText.value = ''; };
+				subButn.onclick	= function(e) { reqHandler(reqText.value, callbackTransform); };
+				reqText.onkeydown = function(e) {
+					if (e.keyCode == 13 && (e.shiftKey || e.ctrlKey)) {
+						//console.log("submit", subSel);
+						reqHandler(reqText.value, callbackTransform);
+						return false;
+					} else if (e.keyCode == 8 && (e.shiftKey || e.ctrlKey)) {
+						//console.log("clear", subSel);
+						resText.value = '';
+						return false;
+					}
+				};
+			}
+
+			function appendAndScrollTextArea(text, textArea) {
+				if (textArea.value == ""){
+					textArea.value += text;
+					textArea.scrollTop = textArea.scrollHeight;
+				} else {
+					textArea.value += "\n\n" + text;
+					textArea.scrollTop = textArea.scrollHeight;
+				}
+			}
+
+			function coapInputFilterCON(text, callback){
+				wd.onmessage = function(ab){
+					var cmsg = c.parse(ab)
+
+					if (cmsg.type == "CON") {
+						console.log("Sending RST On: " + JSON.stringify(cmsg))
+						var ackmsg = c.dump({type:"ACK",code:"EMPTY", mid:cmsg.mid, token:cmsg.token})
+						wd.send(ackmsg);
+					}
+
+					callback(JSON.stringify(cmsg, null, "  "))
+				}
+				//console.log(text)
+				var pkt = c.dump(JSON.parse(text));
+				wd.send(pkt);
+			}
+
+			function coapInputAutoACK(text, callback){
+				wd.onmessage = function(ab){
+					var cmsg = c.parse(ab)
+
+					// This is a bad idea generally. In the real world you should verify stuff.
+					if (cmsg.type == "CON") {
+						console.log("Auto ACKing: " + JSON.stringify(cmsg))
+						var ackmsg = c.dump({type:"ACK",code:"EMPTY", mid:cmsg.mid, token:cmsg.token})
+						wd.send(ackmsg);
+					}
+					callback(JSON.stringify(cmsg, null, "  "))
+				}
+				//console.log(text)
+				var pkt = c.dump(JSON.parse(text));
+				wd.send(pkt);
+			}
 
 		</script>
 
@@ -76,10 +185,22 @@
 					<p>
 						<small><a href="http://mkii.org">Patrick Barrett</a> / <a href="http://twitter.com/@zdle">@zdle</a></small>
 					</p>
+					<aside class="notes">
+						Hello, Me, Questions
+
+						Audience: What do you want out of this? Engineer, "Lord Business", Hobbyist, C Lang, TCP/UDP
+					</aside>
 				</section>
 
-				<section data-background="#770000">
+				<section data-background="#004477">
 					<h1>But First</h1>
+					<aside class="notes">
+						Who here knows what HTTP is? knows what it looks like?
+
+						For those that don't it's the protocol that runs the internet these days. If you have a smartphone (and I assume that all of you do) then it has probably made half a dozen HTTP calls to some server since I switched to this slide.
+
+						It looks like this... ->
+					</aside>
 				</section>
 
 				<section>
@@ -87,7 +208,7 @@
 					<pre><code data-trim class="http request">
 POST /api:v1/stack/alias HTTP/1.1
 Host: m2.exosite.com
-X-Exosite-CIK: a32c85ba9dda45823be416246cf8b433baa068d7
+X-Exosite-CIK: f6b2d8b26aa4a42f54eca858d509663e02a7b909
 Content-Type: application/x-www-form-urlencoded; charset=utf-8
 Content-Length: 7
 
@@ -101,20 +222,51 @@ Server: nginx
  
 &nbsp;
 					</code></pre>
+					<aside class="notes">
+						That may look short and sweet, but there's really a lot going on there just to say that the temperature is 26º.
+
+						This just happens to be an API call to Exosite's (where I work) simple HTTP data API. Note that I said simple. We stripped out everything that we could to make the data use overhead as small as we could without breaking protocol. 
+
+						Lets look at it in a slightly different way just so we can see every byte that is there. ->
+					</aside>
 				</section>
 
-				<section>
-					<h2>Yo!</h2>
-					<pre><code data-trim class="request coap" id="yo-request">
-00000000: 40 01 00 37 B2 31 61 04  74 65 6D 70 4D 07 A3 2C  @..7.1a.tempM..,
-00000010: 85 BA 9D DA 45 82 3B E4  16 24 6C F8 B4 33 BA A0  ....E.;..$l..3..
-00000020: 68 D7                                             h.
+				<section class="worse">
+					<h2>Let Me Make that Look Worse</h2>
+					<pre><code data-trim class="request http" id="worse-request">
+00000000: 50 4F 53 54 20 2F 61 70  69 3A 76 31 2F 73 74 61  POST /api:v1/sta
+00000010: 63 6B 2F 61 6C 69 61 73  20 48 54 54 50 2F 31 2E  ck/alias HTTP/1.
+00000020: 31 0A 48 6F 73 74 3A 20  6D 32 2E 65 78 6F 73 69  1.Host: m2.exosi
+00000030: 74 65 2E 63 6F 6D 0A 58  2D 45 78 6F 73 69 74 65  te.com.X-Exosite
+00000040: 2D 43 49 4B 3A 20 61 33  32 63 38 35 62 61 39 64  -CIK: a32c85ba9d
+00000050: 64 61 34 35 38 32 33 62  65 34 31 36 32 34 36 63  da45823be416246c
+00000060: 66 38 62 34 33 33 62 61  61 30 36 38 64 37 0A 43  f8b433baa068d7.C
+00000070: 6F 6E 74 65 6E 74 2D 54  79 70 65 3A 20 61 70 70  ontent-Type: app
+00000080: 6C 69 63 61 74 69 6F 6E  2F 78 2D 77 77 77 2D 66  lication/x-www-f
+00000090: 6F 72 6D 2D 75 72 6C 65  6E 63 6F 64 65 64 3B 20  orm-urlencoded; 
+000000A0: 63 68 61 72 73 65 74 3D  75 74 66 2D 38 0A 43 6F  charset=utf-8.Co
+000000B0: 6E 74 65 6E 74 2D 4C 65  6E 67 74 68 3A 20 37 0A  ntent-Length: 7.
+000000C0: 0A 74 65 6D 70 3D 32 36                           .temp=26
 					</code></pre>
-					<pre><code data-trim class="response coap" id="yo-response">
-00000000: 60 44 00 37                                       `D.7
+					<pre><code data-trim id="worse-response">
+00000000: 48 54 54 50 2f 31 2e 31 20 32 30 34 20 4e 6f 20  HTTP.....2.4.No.
+00000010: 43 6f 6e 74 65 6e 74 44 61 74 65 3a 20 54 68 75  ContentDate:.Thu
+00000020: 2c 20 30 35 20 4d 61 72 20 32 30 31 35 20 31 38  ...5.Mar.2..5..8
+00000030: 3a 30 30 3a 34 34 20 47 4d 54 43 6f 6e 74 65 6e  :..:44.GMTConten
+00000040: 74 2d 4c 65 6e 67 74 68 3a 20 30 53 65 72 76 65  t.Length:..Serve
+00000050: 72 3a 20 6e 67 69 6e 78 20 20                    r:.nginx..
 					</code></pre>
+
+					<aside class="notes">
+						That's a lot of bytes when all we're trying to say is "temp=26".
+
+						So, how do we make this shorter? Well, we could remove some of the headers or make our own aliases for them. Maybe take this Content-Type header and say that our Content-Type is "urlenc". It's a lot shorter, but it's also not going to be understood by any software that wasn't written specfically for our APIs. Not good.
+
+						So, what's a presenter to do with this obviously leading question? Why show you something much shorter and completely incomprehensible, of course.
+					</aside>
 				</section>
 
+<!--
 				<section class="worse">
 					<h2>It's Worse than it Looks</h2>
 					<pre><code data-trim class="request coap" id="worse-request">
@@ -137,36 +289,38 @@ Server: nginx
 000000B0: 6E 74 65 6E 74 2D 4C 65  6E 67 74 68 3A 20 37 0A  ntent-Length: 7.
 000000C0: 0A 74 65 6D 70 3D 32 36                           .temp=26
 					</code></pre>
+
+					<aside class="notes">
+						That's a lot of bytes when all we're trying to say is "temp=26".
+
+						So, how do we make this shorter? Well, we could remove some of the headers or make our own aliases for them. Maybe take this Content-Type header and say that our Content-Type is "urlenc". It's a lot shorter, but it's also not going to be understood by any software that wasn't written specfically for our APIs. Not good.
+
+						So, what's a presenter to do with this obviously leading question? Why show you something much shorter and completely incomprehensible, of course.
+					</aside>
 				</section>
-
+-->
 				<section>
-					<script type="text/javascript">
-						function doRoar(){
-							wd.onmessage = null;
-							wd.onmessage = function(ab){
-								var currentText = document.getElementById("roar-response").textContent;
-								if (currentText == ""){
-									document.getElementById("roar-response").textContent += dumper.dump(ab);
-								} else {
-									document.getElementById("roar-response").textContent += "\n\n" + dumper.dump(ab);
-								}
-							}
-							wd.send(WRITE);
-						}
-
-						document.addEventListener('readystatechange', function() {
-							document.getElementById("roar-request").textContent = dumper.dump(WRITE)
-						}, false);
-					</script>
-					<h2>Hear me roar!</h2>
-					<input type=button name="doit" value="Do It!" onclick="doRoar();"/>
-					<input type=button name="doit" value="Clear" onclick="document.getElementById('roar-response').textContent = ''"/>
-					<pre><code data-trim class="roar coap hexdump request" id="roar-request">
+					<h2>Yo!</h2>
+					<pre><code data-trim class="request coap" id="yo-request">
 00000000: 40 01 00 37 B2 31 61 04  74 65 6D 70 4D 07 A3 2C  @..7.1a.tempM..,
 00000010: 85 BA 9D DA 45 82 3B E4  16 24 6C F8 B4 33 BA A0  ....E.;..$l..3..
 00000020: 68 D7                                             h.
 					</code></pre>
-					<pre><code data-trim class="roar coap hexdump response" id="roar-response"></code></pre>
+					<pre><code data-trim class="response coap" id="yo-response">
+00000000: 60 44 00 37                                       `D.7
+					</code></pre>
+
+					<aside class="notes">
+						Looking over at the little preview window, it's really not quite as clear what's going on just from looking. We can see somethings in there. Here there's "temp", there there's a "26". Oh, right we were trying to tell the server that temp=26 in the last slide, maybe that's what we're still doing.
+
+						Yup. This packet contains all the same information and is doing the same thing that the last one did. But this one is using CoAP instead of HTTP.
+
+						Not bad, we went from a total of NNN bytes for HTTP to just MM bytes for CoAP.
+
+						So, that's cool. We just did some thing that we were already able to do, but with fewer bytes. Is that all? Just what is this CoAP thing anyway?
+
+						Well, I'm glad that I'm assuming you're asking that.
+					</aside>
 				</section>
 
 				<section>
@@ -191,13 +345,210 @@ Server: nginx
 						such as multicast support, very low overhead, and simplicity for
 						constrained environments.
 					</small></p>
+
+					<p><small><a href="https://tools.ietf.org/html/rfc7252">RFC7252</a></small></p>
+
+					<aside class="notes">
+						"web transfer protocol ... low-power .. 8-bit ... low-power again ... M2M"
+					</aside>
 				</section>
 
 				<section>
-					<p>Other things to hit: TCP Connection time, Server to Server, Multicast, discoverability,
-						group communication, Thread, 6LoWPAN</p>
+					<h2>Wait, what‽</h2>
+					<p class="fragment">
+						Like HTTP<span class="fragment">, but...</span>
+					</p>
+					<ul>
+						<li class="fragment">Binary (ie. Small)</li>
+						<li class="fragment">UDP</li>
+						<li class="fragment">Really Easy to Parse</li>
+						<li class="fragment">Well-Defined <sup>*</sup></li>
+						<li class="fragment">Extensible</li>
+						<li class="fragment">Real-Time</li>
+						<li class="fragment">Supports Local &amp; Multicast</li>
+						<li class="fragment">Discovery</li>
+						<li class="fragment">PHY Independent</li>
+					</ul>
 
-					<p>Things that are crap: DTLS vs TLS</p>
+					<aside class="notes">
+						
+					</aside>
+				</section>
+
+				<section>
+					<h2>It's Full of Bits</h2>
+					<pre><code data-trim class="request coap" id="yo-request">
+0                   1                   2                   3
+0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|Ver| T |  TKL  |      Code     |          Message ID           |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|   Token (if any, TKL bytes) ...
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|   Options (if any) ...
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|1 1 1 1 1 1 1 1|    Payload (if any) ...
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+					</code></pre>
+
+					<aside class="notes">
+						
+					</aside>
+				</section>
+
+				<section>
+					<h2>B2? You Sunk my Battleship</h2>
+					<pre><code data-trim class="request coap" id="yo-request">
+00000000: 40 01 00 37 B2 31 61 04  74 65 6D 70 4D 07 A3 2C  @..7.1a.tempM..,
+00000010: 85 BA 9D DA 45 82 3B E4  16 24 6C F8 B4 33 BA A0  ....E.;..$l..3..
+00000020: 68 D7                                             h.
+					</code></pre>
+					<pre><code data-trim class="response coap" id="yo-response">
+00000000: 60 44 00 37                                       `D.7
+					</code></pre>
+
+					<aside class="notes">
+						Looking over at the little preview window, it's really not quite as clear what's going on just from looking. We can see somethings in there. Here there's "temp", there there's a "26". Oh, right we were trying to tell the server that temp=26 in the last slide, maybe that's what we're still doing.
+
+						Yup. This packet contains all the same information and is doing the same thing that the last one did. But this one is using CoAP instead of HTTP.
+
+						Not bad, we went from a total of NNN bytes for HTTP to just MM bytes for CoAP.
+
+						So, that's cool. We just did some thing that we were already able to do, but with fewer bytes. Is that all? Just what is this CoAP thing anyway?
+
+						Well, I'm glad that I'm assuming you're asking that.
+					</aside>
+				</section>
+
+				<section>
+					<h2>Goodnight Moon</h2>
+					<div>
+						<textarea id="moon-request" class="left-half hljs" readonly>{
+  "version": 1,
+  "type": "CON",
+  "code": "POST",
+  "mid": 55,
+  "token": {},
+  "opts": {
+    "UriPath": [
+      "1a",
+      "temp"
+    ],
+    "UriQuery": [
+      "f6b2d8b26aa4a42f54eca858d509663e02a7b909"
+    ]
+  },
+  "payload": "26"
+}</textarea>
+						<textarea id="moon-response" class="right-half hljs" readonly>{
+  "version": 1,
+  "type": "ACK",
+  "code": "Changed",
+  "mid": 55,
+  "token": {},
+  "opts": {}
+}</textarea>
+					</div>
+
+					<aside class="notes">
+					</aside>
+				</section>
+
+				<section>
+					<h2>Do a Flip</h2>
+					<input type=button name="doit" id="flip-sub" value="Do It!" onclick=""/>
+					<input type=button name="clear" id="flip-clr" value="Clear" onclick=""/>
+					<div>
+						<textarea id="flip-request" class="left-half hljs">{
+  "version": 1,
+  "type": "CON",
+  "code": "GET",
+  "mid": 55,
+  "token": {},
+  "opts": {
+    "UriPath": [
+      "1a",
+      "msg"
+    ],
+    "UriQuery": [
+      "f6b2d8b26aa4a42f54eca858d509663e02a7b909"
+    ]
+  }
+}</textarea>
+						<textarea id="flip-response" class="right-half hljs"></textarea>
+					</div>
+
+					<aside class="notes">
+					</aside>
+					<script type="text/javascript">
+						setupIOPair("flip",
+							coapInputFilterCON,
+							appendAndScrollTextArea);
+					</script>
+				</section>
+
+				<section>
+					<h2>Ring, Ring, Ring</h2>
+					<input type=button name="doit" id="write-sub" value="Do It!" onclick=""/>
+					<input type=button name="clear" id="write-clr" value="Clear" onclick=""/>
+					<div>
+						<textarea id="write-request" class="left-half hljs">{
+  "version": 1,
+  "type": "CON",
+  "code": "POST",
+  "mid": 55,
+  "token": {},
+  "opts": {
+    "UriPath": [
+      "1a",
+      "temp"
+    ],
+    "UriQuery": [
+      "f6b2d8b26aa4a42f54eca858d509663e02a7b909"
+    ]
+  },
+  "payload": "26"
+}</textarea>
+						<textarea id="write-response" class="right-half hljs"></textarea>
+					</div>
+
+					<aside class="notes">
+					</aside>
+					<script type="text/javascript">
+						setupIOPair("write",coapInputAutoACK,appendAndScrollTextArea);
+					</script>
+				</section>
+
+				<section  data-background="#771818">
+					<h2>Don't Drink the Kool-Aid<h2>
+					<ul>
+						<li class="fragment">It's New</li>
+						<li class="fragment">It's Still Evolving</li>
+						<li class="fragment">DTLS</li>
+						<li class="fragment">More Complicated</li>
+						<li class="fragment">Needs More Tooling</li>
+					</ul>
+
+					<aside class="notes">
+					</aside>
+				</section>
+
+				<section>
+					<section>
+						<h2>FIN<h2>
+					</section>
+
+					<section>
+						<h2>Other Cool Things That I Don't Actually Know That Much About<h2>
+						<ul>
+							<li>Multicast &amp; Group Communication</li>
+							<li>Resource Discovery</li>
+							<li>6LoWPAN, Thread, BLE, etc.</li>
+						</ul>
+
+						<aside class="notes">
+						</aside>
+					</section>
 				</section>
 
 			</div>
@@ -223,8 +574,8 @@ Server: nginx
 				// Optional reveal.js plugins
 				dependencies: [
 					{ src: 'lib/js/classList.js', condition: function() { return !document.body.classList; } },
-					{ src: 'plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
-					{ src: 'plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					//{ src: 'plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					//{ src: 'plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
 					{ src: 'plugin/highlight/highlight.js', async: true, condition: function() { return !!document.querySelector( 'pre code' ); }, callback: function() { hljs.initHighlightingOnLoad(); } },
 					{ src: 'plugin/zoom-js/zoom.js', async: true },
 					{ src: 'plugin/notes/notes.js', async: true }

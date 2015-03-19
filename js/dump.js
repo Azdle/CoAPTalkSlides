@@ -1,4 +1,5 @@
 var Dump = (function() {
+	"use strict"
 	//
 	// Constructor
 	//
@@ -33,7 +34,7 @@ var Dump = (function() {
 	}
 
 	function toPrintableAscii(code, replacer) {
-		if (code >= 0x32 && code <= 0x7E) {
+		if (code >= 0x20 && code <= 0x7E) {
 			return String.fromCharCode(code);
 		} else {
 			return replacer;
@@ -47,12 +48,13 @@ var Dump = (function() {
 	Dump.prototype.dump = function(data) {
 		var dumps = "";
 
-		if (typeof(data) === "object" && data.constructor === ArrayBuffer) {
-			data = new Uint8Array(data)
-		}
-
-		if (typeof(data) !== "object" || data.constructor !== Uint8Array) {
-			console.error("Can only bump Uint8Array.")
+		if (typeof(data) == "string") {
+			data = new TextEncoder('utf-8').encode(data);
+		} else if (typeof(data) === "object" && data.constructor === ArrayBuffer) {
+			data = new Uint8Array(data);
+		} else if (typeof(data) !== "object" || data.constructor !== Uint8Array) {
+			console.error("Can only parse Uint8Array or String.");
+			return null;
 		}
 
 		var asciiPreviewLine = "";

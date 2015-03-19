@@ -1,10 +1,12 @@
 
 var WebDatagramSocket = (function() {
+	"use strict"
 	//
 	// Constructor
 	//
 
-	function WebDatagramSocket(host, port) {
+	function WebDatagramSocket(host, port, server) {
+		this.server = server || "wss://webdatagram.herokuapp.com";
 		this.host = host;
 		this.port = port;
 
@@ -12,7 +14,8 @@ var WebDatagramSocket = (function() {
 		this.onmessage = null;
 
 		// setup websocket connection to proxy
-		this.ws = new WebSocket("wss://webdatagram.herokuapp.com/"+host+"/"+port+"/", ["wdp"]);
+		console.log(this.server+"/"+host+"/"+port+"/")
+		this.ws = new WebSocket(this.server+"/"+host+"/"+port+"/", ["wdp"]);
 		this.ws.binaryType = "arraybuffer";
 		this.ws.connection_time = Date.now();
 
@@ -33,10 +36,12 @@ var WebDatagramSocket = (function() {
 				console.log("Seconds since open: ", (Date.now() - this.ws.connection_time)/1000);
 				if(this.ws.connection_time < (Date.now() - 5000)){
 					console.log("Abnormal Close, Re-creating Websocket")
-					new_ws = new WebSocket("wss://webdatagram.herokuapp.com/"+this.host+"/"+this.port+"/", ["wdp"]);
+					var new_ws = new WebSocket(this.server+"/"+this.host+"/"+this.port+"/", ["wdp"]);
 					new_ws.binaryType = "arraybuffer";
-					new_ws.onmessage = handleIncomingMessage.bind(this);
-					new_ws.onclose = handleClose.bind(this);
+					//new_ws.onmessage = handleIncomingMessage.bind(this);
+					//new_ws.onclose = handleClose.bind(this);
+					new_ws.onmessage = this.ws.onmessage;
+					new_ws.onclose = this.ws.onclose;
 					//new_ws.onerror = this.ws.onerror;
 					new_ws.connection_time = Date.now();
 
