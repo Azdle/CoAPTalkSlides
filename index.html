@@ -157,6 +157,7 @@
 					if (cmsg.type == "CON") {
 						console.log("Auto ACKing: " + JSON.stringify(cmsg))
 						var ackmsg = c.dump({type:"ACK",code:"EMPTY", mid:cmsg.mid, token:cmsg.token})
+						console.log("with: " + JSON.stringify(ackmsg))
 						wd.send(ackmsg);
 					}
 					callback(JSON.stringify(cmsg, null, "  "))
