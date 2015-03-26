@@ -74,9 +74,9 @@
 		</script>
 
 		<!-- my local scripts -->
-		<script type="text/javascript" src="js/dump.js"></script>
-		<script type="text/javascript" src="js/webdatagram.js"></script>
-		<script type="text/javascript" src="js/coap.js"></script>
+		<script type="text/javascript" src="https://rawgit.com/Azdle/CoAPWebTools/master/static/js/dump.js"></script>
+		<script type="text/javascript" src="https://rawgit.com/Azdle/CoAPWebTools/master/static/js/webdatagram.js"></script>
+		<script type="text/javascript" src="https://rawgit.com/Azdle/CoAPWebTools/master/static/js/coap.js"></script>
 		<script>
 			var PING = new Uint8Array([64,0,0,0]);
 			var WRITE = new Uint8Array([0x40, 0x01, 0x00, 0x37, 0xB2, 0x31, 0x61, 0x04, 0x74, 0x65, 0x6D, 0x70, 0x4D, 0x07, 0xA3, 0x2C, 0x85, 0xBA, 0x9D, 0xDA, 0x45, 0x82, 0x3B, 0xE4, 0x16, 0x24, 0x6C, 0xF8, 0xB4, 0x33, 0xBA, 0xA0, 0x68, 0xD7]);
@@ -88,8 +88,8 @@
 				asciiPreview: true,
 			});
 
-			//var wd = new WebDatagramSocket("coap.exosite.com", 5683);
-			var wd = new WebDatagramSocket("coap.exosite.com", 5683, "ws://localhost:5000");
+			var wd = new WebDatagramSocket("coap.exosite.com", 5683);
+			//var wd = new WebDatagramSocket("coap.exosite.com", 5683, {urlBase: "ws://localhost:5000"});
 
 			var c = new Coap();
 
