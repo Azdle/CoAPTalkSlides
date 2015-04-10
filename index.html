@@ -59,6 +59,10 @@
 				padding-bottom: 1em;
 				white-space: pre;
 			}
+
+			.strike {
+				text-decoration: line-through;
+			}
 		</style>
 
 		<!-- Code syntax highlighting -->
@@ -88,8 +92,8 @@
 				asciiPreview: true,
 			});
 
-			//var wd = new WebDatagramSocket("coap.exosite.com", 5683);
-			var wd = new WebDatagramSocket("coap-dev.exosite.com", 5683, {urlBase: "ws://localhost:5000/wdp"});
+			var wd = new WebDatagramSocket("coap.exosite.com", 5683);
+			//var wd = new WebDatagramSocket("coap-dev.exosite.com", 5683, {urlBase: "ws://localhost:5000/wdp"});
 
 			var c = new Coap();
 
@@ -196,11 +200,158 @@
 				<section data-background="#004477">
 					<h1>But First</h1>
 					<aside class="notes">
-						Who here knows what HTTP is? knows what it looks like?
+					</aside>
+				</section>
 
-						For those that don't it's the protocol that runs the internet these days. If you have a smartphone (and I assume that all of you do) then it has probably made half a dozen HTTP calls to some server since I switched to this slide.
+				<section>
+					<h2>Who dat?</h2>
+					<dl>
+						<dt>IP</dt><dd>Internet Protocol</dd>
+						<dt>TCP</dt><dd>Transmittion Control Protocol</dd>
+						<dt>UDP</dt><dd>User Datagram Protocol</dd>
+					</dl>
+
+					<aside class="notes">
+
+					</aside>
+				</section>
+
+				<section>
+					<h2>Uh... The Internet? (Protocol)</h2>
+
+					<ul>
+						<li class="fragment">The Foundation of the Internet</li>
+						<li class="fragment">Packets</li>
+						<li class="fragment">IP Addresses Live Here</li>
+					</ul>
+
+					<aside class="notes">
+
+					</aside>
+				</section>
+
+				<section>
+					<h2>- -·-· ·--·</h2>
+
+					<ul>
+						<li class="fragment">Connection Establishment</li>
+						<li class="fragment">Stream Protocol<ul>
+							<li class="fragment">Handles Packetizing Data</li>
+							<li class="fragment">Data will be Delivered in Order</li>
+						</ul></li>
+						<li class="fragment">Data Will be Delivered</li>
+						<li class="fragment">Automatically Retries</li>
+						<li class="fragment">Every Bit Will be Exactly as it was Sent</li>
+						<li class="fragment">Flow and Congestion Control</li>
+						<li class="fragment">Port Numbers</li>
+					</ul>
+
+					<aside class="notes">
+						TCP is the most commonly used protocol.
+
+						Positive Acknowledgment
+					</aside>
+				</section>
+
+				<section>
+					<h2>A Friend of the Users</h2>
+
+					<ul class="fragment">
+						<li class="strike">Connection Establishment</li>
+						<li class="strike">Stream Protocol<ul>
+							<li class="strike">Handles Packetizing Data</li>
+							<li class="strike">Data will be Delivered in Order</li>
+						</ul></li>
+						<li class="strike">Data Will be Delivered</li>
+						<li class="strike">Automatically Retries</li>
+						<li>Every Bit Will be Exactly as it was Sent</li>
+						<li class="strike">Flow and Congestion Control</li>
+						<li>Port Numbers</li>
+					</ul>
+
+					<aside class="notes">
+
+					</aside>
+				</section>
+
+				<section>
+					<h2>Bored Yet?</h2>
+					<dl class="fragment">
+						<dt>Client-Server :: Request-Response</dt><dd>The Architecture of the Internet</dd>
+						<dt>NAT</dt><dd>Network Address Translation</dd>
+						<dt>Firewall</dt><dd>A Wall of Fire (Duh)</dd>
+					</dl>
+
+					<aside class="notes">
+
+					</aside>
+				</section>
+
+				<section>
+					<h2>Gimme! - Okay, here.</h2>
+
+					<ol>
+						<li class="fragment">Something Happens</li>
+						<li class="fragment">Client Asks Server for Resource</li>
+						<li class="fragment">Server Processes</li>
+						<li class="fragment">Server Sends Resource to Client</li>
+						<li class="fragment">GOTO 1</li>
+					</ol>
+
+					<aside class="notes">
+						because
+					</aside>
+				</section>
+
+				<section>
+					<h2>Hold Out Your Hand for a Stamp</h2>
+
+					<ul>
+						<li class="fragment">Firewall ≈ NAT</li>
+						<li class="fragment">Connections Are Stateful<ul>
+							<li class="fragment">Even for UDP</li>
+						</ul></li>
+						<li class="fragment">Packets Go Out, But they Don't Come In<ul>
+							<li class="fragment">Unless One of their Friends Just Left</li>
+						</ul></li>
+					</ul>
+
+					<aside class="notes">
+						because
+					</aside>
+				</section>
+
+				<section>
+					<h2>Wait What Was this Talk About?</h2>
+
+					<aside class="notes">
+						Oh, right. CoAP. We're actually still not there yet.
+
+						Lets talk about HTTP first.  Who here knows what HTTP is? knows what it looks like?
+
+						For those that don't it's the protocol that runs the internet these days. (Hey that's the third time I've said that!) If you have a smartphone (and I assume that all of you do) then it has probably made dozens of HTTP calls to some server since I switched to this slide.
 
 						It looks like this... ->
+					</aside>
+				</section>
+
+				<section>
+					<h2>Better than a Wigwam</h2>
+
+					<ul>
+						<li class="fragment">TCP</li>
+						<li class="fragment">Client-Server</li>
+						<li class="fragment">Request-Response</li>
+						<li class="fragment">Text-Based<ul>
+							<li class="fragment">Easy to Read</li>
+						</ul></li>
+						<li class="fragment">Extensible</li>
+						<li class="fragment"></li>
+						<li class="fragment"></li>
+					</ul>
+
+					<aside class="notes">
+						because
 					</aside>
 				</section>
 
@@ -220,13 +371,13 @@ HTTP/1.1 204 No Content
 Date: Thu, 05 Mar 2015 18:00:44 GMT
 Content-Length: 0
 Server: nginx
- 
+
 &nbsp;
 					</code></pre>
 					<aside class="notes">
 						That may look short and sweet, but there's really a lot going on there just to say that the temperature is 26º.
 
-						This just happens to be an API call to Exosite's (where I work) simple HTTP data API. Note that I said simple. We stripped out everything that we could to make the data use overhead as small as we could without breaking protocol. 
+						This just happens to be an API call to Exosite's (where I work) simple HTTP data API. Note that I said simple. We stripped out everything that we could to make the data use overhead as small as we could without breaking protocol.
 
 						Lets look at it in a slightly different way just so we can see every byte that is there. ->
 					</aside>
@@ -244,7 +395,7 @@ Server: nginx
 00000060: 66 38 62 34 33 33 62 61  61 30 36 38 64 37 0A 43  f8b433baa068d7.C
 00000070: 6F 6E 74 65 6E 74 2D 54  79 70 65 3A 20 61 70 70  ontent-Type: app
 00000080: 6C 69 63 61 74 69 6F 6E  2F 78 2D 77 77 77 2D 66  lication/x-www-f
-00000090: 6F 72 6D 2D 75 72 6C 65  6E 63 6F 64 65 64 3B 20  orm-urlencoded; 
+00000090: 6F 72 6D 2D 75 72 6C 65  6E 63 6F 64 65 64 3B 20  orm-urlencoded;
 000000A0: 63 68 61 72 73 65 74 3D  75 74 66 2D 38 0A 43 6F  charset=utf-8.Co
 000000B0: 6E 74 65 6E 74 2D 4C 65  6E 67 74 68 3A 20 37 0A  ntent-Length: 7.
 000000C0: 0A 74 65 6D 70 3D 32 36                           .temp=26
@@ -285,7 +436,7 @@ Server: nginx
 00000060: 66 38 62 34 33 33 62 61  61 30 36 38 64 37 0A 43  f8b433baa068d7.C
 00000070: 6F 6E 74 65 6E 74 2D 54  79 70 65 3A 20 61 70 70  ontent-Type: app
 00000080: 6C 69 63 61 74 69 6F 6E  2F 78 2D 77 77 77 2D 66  lication/x-www-f
-00000090: 6F 72 6D 2D 75 72 6C 65  6E 63 6F 64 65 64 3B 20  orm-urlencoded; 
+00000090: 6F 72 6D 2D 75 72 6C 65  6E 63 6F 64 65 64 3B 20  orm-urlencoded;
 000000A0: 63 68 61 72 73 65 74 3D  75 74 66 2D 38 0A 43 6F  charset=utf-8.Co
 000000B0: 6E 74 65 6E 74 2D 4C 65  6E 67 74 68 3A 20 37 0A  ntent-Length: 7.
 000000C0: 0A 74 65 6D 70 3D 32 36                           .temp=26
@@ -360,19 +511,28 @@ Server: nginx
 						Like HTTP<span class="fragment">, but...</span>
 					</p>
 					<ul>
-						<li class="fragment">Binary (ie. Small)</li>
 						<li class="fragment">UDP</li>
-						<li class="fragment">Really Easy to Parse</li>
+						<li class="fragment">Client-Server<ul>
+							<li class="fragment">And More</li>
+						</ul></li>
+						<li class="fragment">Request-Response<ul>
+							<li class="fragment">And More</li>
+						</ul></li>
+						<li class="fragment">Binary (ie. Small)<ul>
+							<li class="fragment">Really Easy to Parse</li>
+						</ul></li>
 						<li class="fragment">Well-Defined <sup>*</sup></li>
 						<li class="fragment">Extensible</li>
+						<!--
 						<li class="fragment">Real-Time</li>
 						<li class="fragment">Supports Local &amp; Multicast</li>
 						<li class="fragment">Discovery</li>
 						<li class="fragment">PHY Independent</li>
+						-->
 					</ul>
 
 					<aside class="notes">
-						
+
 					</aside>
 				</section>
 
@@ -393,7 +553,7 @@ Server: nginx
 					</code></pre>
 
 					<aside class="notes">
-						
+
 					</aside>
 				</section>
 
@@ -489,7 +649,7 @@ Server: nginx
 				</section>
 
 				<section>
-					<h2>Ring, Ring, Ring</h2>
+					<h2>Meep Meep</h2>
 					<input type=button name="doit" id="write-sub" value="Do It!" onclick=""/>
 					<input type=button name="clear" id="write-clr" value="Clear" onclick=""/>
 					<div>
