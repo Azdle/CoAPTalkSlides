@@ -4,9 +4,9 @@
 	<head>
 		<meta charset="utf-8">
 
-		<title>The Constrained Application Protocol</title>
+		<title>Embedded Device Protocols</title>
 
-		<meta name="description" content="The IETF's New Protocol for the Internet of Things">
+		<meta name="description" content="Application Protocols for the Internet of Things">
 		<meta name="author" content="Patrick Barrett">
 
 		<meta name="apple-mobile-web-app-capable" content="yes" />
@@ -185,10 +185,10 @@
 			<!-- Any section element inside of this container is displayed as a slide -->
 			<div class="slides">
 				<section>
-					<h1>The Constrained Application Protocol</h1>
-					<h3>The IETF's New Protocol for the Internet of Things</h3>
+					<h1>Application Protocols</h1>
+					<h3>For the Internet of Things</h3>
 					<p>
-						<small><a href="http://mkii.org">Patrick Barrett</a> / <a href="http://twitter.com/@zdle">@zdle</a></small>
+						<small><a href="http://mkii.org">Patrick Barrett</a> / Applications Engineer<!--<a href="http://twitter.com/@zdle">@zdle</a> --></small>
 					</p>
 					<aside class="notes">
 						Hello, Me, Questions
@@ -350,6 +350,101 @@
 
 					<aside class="notes">
 						because
+					</aside>
+				</section>
+
+				<section>
+					<h2>Get it? It rhymes with TiPi</h2>
+					<pre><code data-trim class="http request">
+POST /api:v1/stack/alias HTTP/1.1
+Host: m2.exosite.com
+X-Exosite-CIK: f6b2d8b26aa4a42f54eca858d509663e02a7b909
+Content-Type: application/x-www-form-urlencoded; charset=utf-8
+Content-Length: 7
+
+temp=26
+					</code></pre>
+					<pre><code data-trim class="http response">
+HTTP/1.1 204 No Content
+Date: Thu, 05 Mar 2015 18:00:44 GMT
+Content-Length: 0
+Server: nginx
+
+&nbsp;
+					</code></pre>
+					<aside class="notes"></aside>
+				</section>
+
+				<section>
+					<h2>GET Back you Monster</h2>
+					<pre><code data-trim class="http request">
+GET /api:v1/stack/alias?temp HTTP/1.1
+Host: m2.exosite.com
+X-Exosite-CIK: f6b2d8b26aa4a42f54eca858d509663e02a7b909
+Accept: application/x-www-form-urlencoded; charset=utf-8
+
+&nbsp;
+					</code></pre>
+					<pre><code data-trim class="http response">
+HTTP/1.1 200 OK
+Date: Tue, 25 Aug 2015 05:43:42 GMT
+Server: nginx
+Connection: Close
+Content-Length: 7
+
+temp=26
+					</code></pre>
+					<aside class="notes">
+					</aside>
+				</section>
+
+				<section>
+					<h2>Don't Call it a Hack</h2>
+					<pre><code data-trim class="http request">
+GET /api:v1/stack/alias?temp HTTP/1.1
+Host: m2.exosite.com
+X-Exosite-CIK: f6b2d8b26aa4a42f54eca858d509663e02a7b909
+Accept: application/x-www-form-urlencoded; charset=utf-8
+Request-Timeout: 300000
+If-Modified-Since: 1440481217
+
+&nbsp;
+					</code></pre>
+					<pre><code data-trim class="http response">
+HTTP/1.1 200 OK
+Date: Tue, 25 Aug 2015 05:43:42 GMT
+Server: nginx
+Connection: Close
+Content-Length: 7
+Last-Modified: Tue, 25 Aug 2015 05:43:42 GMT
+
+temp=26
+					</code></pre>
+					<aside class="notes">
+					</aside>
+				</section>
+
+				<section>
+					<h2>Surely OP Will Deliver</h2>
+					<pre><code data-trim class="http request">
+GET /api:v1/stack/alias?temp HTTP/1.1
+Host: m2.exosite.com
+X-Exosite-CIK: f6b2d8b26aa4a42f54eca858d509663e02a7b909
+Accept: application/x-www-form-urlencoded; charset=utf-8
+Request-Timeout: 300000
+If-Modified-Since: 1440481217
+
+&nbsp;
+					</code></pre>
+					<pre><code data-trim class="http response">
+HTTP/1.1 304 Not Modified
+Date: Tue, 25 Aug 2015 05:45:17 GMT
+Server: nginx
+Connection: Close
+
+&nbsp;
+					</code></pre>
+					<aside class="notes">
 					</aside>
 				</section>
 
@@ -665,9 +760,7 @@ Server: nginx
     "UriQuery": [
       "f6b2d8b26aa4a42f54eca858d509663e02a7b909"
     ],
-    "Observe": [
-      ""
-    ]
+    "Observe": 0
   }
 }</textarea>
 						<textarea id="write-response" class="right-half hljs"></textarea>
@@ -695,13 +788,26 @@ Server: nginx
 				</section>
 
 				<section>
+					<h2>Fight!<h2>
+					<ul>
+						<li class="fragment">MQTT</li>
+						<li class="fragment">XMPP</li>
+						<li class="fragment"></li>
+						<li class="fragment"></li>
+					</ul>
+
+					<aside class="notes">
+					</aside>
+				</section>
+
+				<section>
 					<section>
 						<h2>FIN<h2>
 						<h1>☃</h1>
 					</section>
 
 					<section>
-						<h2>Other Cool Things That I Don't Actually Know That Much About<h2>
+						<h2>Other Cool Things About CoAP That I Don't Know Much About and Aren't Really Relevant<h2>
 						<ul>
 							<li>Multicast &amp; Group Communication</li>
 							<li>Resource Discovery</li>
